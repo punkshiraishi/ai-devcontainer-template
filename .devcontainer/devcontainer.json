@@ -51,6 +51,6 @@
       }
     }
   },
-  "postCreateCommand": "/usr/local/share/devcontainer/scripts/setup-directories.sh",
-  "postStartCommand": "/usr/local/share/devcontainer/scripts/sync-codex-config.sh"
+  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh",
+  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh"
 }

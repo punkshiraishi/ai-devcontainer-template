@@ -50,10 +50,6 @@ RUN ARCH=$(dpkg --print-architecture) \
  && dpkg -i /tmp/git-delta.deb \
  && rm /tmp/git-delta.deb
 
-COPY scripts /usr/local/share/devcontainer/scripts
-RUN chmod +x /usr/local/share/devcontainer/scripts/*.sh \
- && chown -R vscode:vscode /usr/local/share/devcontainer/scripts
-
 RUN mkdir -p \
       /workspaces/default \
       /home/vscode/.claude \
@@ -64,6 +60,11 @@ RUN mkdir -p \
       /home/vscode/.claude \
       /home/vscode/.cursor \
       /home/vscode/.codex
+
+COPY init-firewall.sh /usr/local/bin/init-firewall.sh
+RUN chmod +x /usr/local/bin/init-firewall.sh \
+ && echo "vscode ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/vscode-init-firewall \
+ && chmod 0440 /etc/sudoers.d/vscode-init-firewall
 
 USER vscode
 
