@@ -6,7 +6,7 @@ project_codex="${worktree}/.codex"
 dest="$HOME/.codex"
 
 if [[ ! -d "$project_codex" ]]; then
-  echo "[ai-copilot] No project .codex directory found; skipping sync."
+  echo "[ai-devcontainer-template] No project .codex directory found; skipping sync."
   exit 0
 fi
 
@@ -18,4 +18,4 @@ else
   cp -an "${project_codex}/." "$dest/" || true
 fi
 
-echo "[ai-copilot] Synced project .codex into $dest without overwriting existing files."
+echo "[ai-devcontainer-template] Synced project .codex into $dest without overwriting existing files."

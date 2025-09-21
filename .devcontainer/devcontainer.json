@@ -1,5 +1,5 @@
 {
-  "name": "ai-copilot-devcontainer",
+  "name": "ai-devcontainer-template",
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".",
@@ -15,10 +15,10 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/default,type=bind,consistency=delegated",
   "workspaceFolder": "/workspaces/default",
   "mounts": [
-    "source=ai-cli-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=ai-cli-claude-${devcontainerId},target=/home/vscode/.claude,type=volume",
-    "source=ai-cli-cursor-${devcontainerId},target=/home/vscode/.cursor,type=volume",
-    "source=ai-cli-codex-${devcontainerId},target=/home/vscode/.codex,type=volume"
+    "source=aidt-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=aidt-claude-${devcontainerId},target=/home/vscode/.claude,type=volume",
+    "source=aidt-cursor-${devcontainerId},target=/home/vscode/.cursor,type=volume",
+    "source=aidt-codex-${devcontainerId},target=/home/vscode/.codex,type=volume"
   ],
   "containerEnv": {
     "NODE_OPTIONS": "--max-old-space-size=4096",
