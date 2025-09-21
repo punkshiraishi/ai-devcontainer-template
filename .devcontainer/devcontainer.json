@@ -2,33 +2,23 @@
   "name": "ai-devcontainer-template",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".",
     "args": {
-      "TZ": "${localEnv:TZ:Asia/Tokyo}"
+      "TZ": "${localEnv:TZ:Asia/Tokyo}",
+      "CLAUDE_CODE_VERSION": "latest",
+      "CODEX_VERSION": "latest",
+      "GIT_DELTA_VERSION": "0.18.2",
+      "ZSH_IN_DOCKER_VERSION": "1.2.0"
     }
   },
   "runArgs": [
     "--cap-add=NET_ADMIN",
     "--cap-add=NET_RAW"
   ],
-  "remoteUser": "vscode",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/default,type=bind,consistency=delegated",
-  "workspaceFolder": "/workspaces/default",
-  "mounts": [
-    "source=aidt-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=aidt-claude-${devcontainerId},target=/home/vscode/.claude,type=volume",
-    "source=aidt-cursor-${devcontainerId},target=/home/vscode/.cursor,type=volume",
-    "source=aidt-codex-${devcontainerId},target=/home/vscode/.codex,type=volume"
-  ],
-  "containerEnv": {
-    "NODE_OPTIONS": "--max-old-space-size=4096",
-    "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
-    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
-  },
   "customizations": {
     "vscode": {
       "extensions": [
         "anthropic.claude-code",
+        "openai.chatgpt",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "eamodio.gitlens"
@@ -40,17 +30,31 @@
         },
         "terminal.integrated.defaultProfile.linux": "zsh",
         "terminal.integrated.profiles.linux": {
-          "zsh": {
-            "path": "zsh"
-          },
           "bash": {
             "path": "bash",
             "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
           }
         }
       }
     }
   },
-  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh",
-  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh"
+  "remoteUser": "node",
+  "mounts": [
+    "source=aidt-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=aidt-claude-${devcontainerId},target=/home/node/.claude,type=volume",
+    "source=aidt-cursor-${devcontainerId},target=/home/node/.cursor,type=volume",
+    "source=aidt-codex-${devcontainerId},target=/home/node/.codex,type=volume"
+  ],
+  "containerEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspace",
+  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
+  "waitFor": "postStartCommand"
 }
