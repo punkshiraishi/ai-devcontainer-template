@@ -1,0 +1,56 @@
+{
+  "name": "ai-copilot-devcontainer",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      "TZ": "${localEnv:TZ:Asia/Tokyo}"
+    }
+  },
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW"
+  ],
+  "remoteUser": "vscode",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/default,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspaces/default",
+  "mounts": [
+    "source=ai-cli-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=ai-cli-claude-${devcontainerId},target=/home/vscode/.claude,type=volume",
+    "source=ai-cli-cursor-${devcontainerId},target=/home/vscode/.cursor,type=volume",
+    "source=ai-cli-codex-${devcontainerId},target=/home/vscode/.codex,type=volume"
+  ],
+  "containerEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "zsh"
+          },
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          }
+        }
+      }
+    }
+  },
+  "postCreateCommand": "/usr/local/share/devcontainer/scripts/setup-directories.sh",
+  "postStartCommand": "/usr/local/share/devcontainer/scripts/sync-codex-config.sh"
+}
