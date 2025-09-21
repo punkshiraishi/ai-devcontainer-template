@@ -5,7 +5,7 @@ Reusable devcontainer configuration that preinstalls Anthropic Claude Code, Curs
 ## Features
 - Ubuntu-based image with Node.js 22, Python 3, Ripgrep, GitHub CLI, and other common tools.
 - Preconfigured CLI tooling: Claude Code, Cursor Agent, Codex, zsh, and persistent shell history volumes.
-- Network egress locked down by `init-firewall.sh`, combining the allowlists from the `boxiv-share`, `check-your-links`, and Claude Code setups.
+- Network egress locked down by `init-firewall.sh`, combining the allowlists from the Claude Code setup.
 - VS Code customization with useful extensions and consistent terminal profiles.
 
 ## Getting Started
