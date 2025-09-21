@@ -3,7 +3,6 @@
 Reusable devcontainer configuration that preinstalls Anthropic Claude Code, Cursor CLI, and OpenAI Codex CLI. Clone this repository once and reuse the `.devcontainer/` folder across any project.
 
 ## Features
-- Ubuntu-based image with Node.js 22, Python 3, Ripgrep, GitHub CLI, and other common tools.
 - Preconfigured CLI tooling: Claude Code, Cursor Agent, Codex, zsh, and persistent shell history volumes.
 - Network egress locked down by `init-firewall.sh`, combining the allowlists from the Claude Code setup.
 - VS Code customization with useful extensions and consistent terminal profiles.
@@ -24,7 +23,6 @@ After the container starts, confirm the CLIs are available:
 
 ```bash
 devcontainer exec --workspace-folder <project> -- claude --version
-devcontainer exec --workspace-folder <project> -- cursor-agent --help | head -n 1
 devcontainer exec --workspace-folder <project> -- codex --version
 ```
 
