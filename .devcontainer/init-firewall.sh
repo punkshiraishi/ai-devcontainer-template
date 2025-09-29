@@ -4,6 +4,26 @@ IFS=$'\n\t'
 
 SCRIPT_TAG="[ai-devcontainer-template]"
 
+# Ensure socat is available for TCP forwarding when using cached images
+if ! command -v socat >/dev/null 2>&1; then
+  apt-get update
+  apt-get install -y --no-install-recommends socat
+  apt-get clean && rm -rf /var/lib/apt/lists/*
+fi
+
+# Ensure agent state directories are writable by the node user
+for dir in /home/node/.claude /home/node/.cursor /home/node/.codex /commandhistory; do
+  mkdir -p "$dir"
+  chown -R node:node "$dir"
+done
+
+# Start TCP forwarder that exposes the codex login callback (1455) on 0.0.0.0:8085
+SOCAT_LISTEN_PORT=8085
+CODEX_CALLBACK_PORT=1455
+if ! pgrep -f "socat .*TCP-LISTEN:${SOCAT_LISTEN_PORT}" >/dev/null 2>&1; then
+  nohup socat TCP-LISTEN:${SOCAT_LISTEN_PORT},fork,reuseaddr TCP:127.0.0.1:${CODEX_CALLBACK_PORT} \
+    >/tmp/codex-login-forward.log 2>&1 &
+fi
 
 # Preserve Docker embedded DNS rules before flushing tables
 DOCKER_DNS_RULES=$(iptables-save -t nat | grep "127\.0\.0\.11" || true)
@@ -65,20 +85,37 @@ domains=(
   "vscode.blob.core.windows.net"
   "cursor.com"
   "api.cursor.com"
+  "cursor.sh"
+  "api.cursor.sh"
+  "api2.cursor.sh"
+  "repo42.cursor.sh"
   "downloads.cursor.com"
 )
 
 for domain in "${domains[@]}"; do
   ips=$(dig +short A "$domain")
   if [ -z "$ips" ]; then
-    echo "ERROR failed to resolve $domain" >&2
-    exit 1
+    echo "$SCRIPT_TAG WARN: failed to resolve $domain" >&2
+    continue
   fi
   while read -r ip; do
-    if [[ ! "$ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+    if [[ "$ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+      ipset add -exist allowed-domains "$ip"
       continue
     fi
-    ipset add -exist allowed-domains "$ip"
+
+    # Handle CNAME responses by resolving them to IPv4 addresses
+    cname=${ip%.}
+    cname_ips=$(dig +short A "$cname") || true
+    if [ -z "$cname_ips" ]; then
+      echo "$SCRIPT_TAG WARN: failed to resolve CNAME $cname for $domain" >&2
+      continue
+    fi
+    while read -r cname_ip; do
+      if [[ "$cname_ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        ipset add -exist allowed-domains "$cname_ip"
+      fi
+    done <<<"$cname_ips"
   done <<<"$ips"
 done
 
@@ -91,6 +128,17 @@ HOST_NETWORK=$(echo "$HOST_IP" | sed 's/\.[0-9]*$/.0\/24/')
 
 iptables -A INPUT -s "$HOST_NETWORK" -j ACCEPT
 iptables -A OUTPUT -d "$HOST_NETWORK" -j ACCEPT
+
+# Allow local OAuth callback traffic on 1455/tcp so host browser can reach CLI server
+iptables -A INPUT -p tcp --dport 1455 -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 1455 -j ACCEPT
+# Allow the externally exposed forwarder port (8085/tcp)
+iptables -A INPUT -p tcp --dport "$SOCAT_LISTEN_PORT" -j ACCEPT
+iptables -A OUTPUT -p tcp --sport "$SOCAT_LISTEN_PORT" -j ACCEPT
+
+# Redirect traffic from other interfaces to the codex login loopback listener
+iptables -t nat -A PREROUTING -p tcp --dport 1455 -j REDIRECT --to-ports 1455
+iptables -t nat -A OUTPUT -p tcp --dport 1455 ! -d 127.0.0.1 -j REDIRECT --to-ports 1455
 
 iptables -P INPUT DROP
 iptables -P FORWARD DROP
@@ -111,4 +159,3 @@ if ! curl --connect-timeout 5 https://api.github.com/zen >/dev/null 2>&1; then
   echo "ERROR unable to reach api.github.com" >&2
   exit 1
 fi
-

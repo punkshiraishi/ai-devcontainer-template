@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   fzf \
   zsh \
   man-db \
+  locales \
   unzip \
   gnupg2 \
   gh \
@@ -22,10 +23,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   ipset \
   iproute2 \
   dnsutils \
+  socat \
   aggregate \
   jq \
   nano \
   vim \
+  && sed -i 's/# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen \
+  && locale-gen \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Ensure default node user has access to /usr/local/share
@@ -68,6 +72,10 @@ ENV SHELL=/bin/zsh
 # Set the default editor and visual
 ENV EDITOR=nano
 ENV VISUAL=nano
+
+# Default locale to suppress warnings when commands run under sudo
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
 
 # Default powerline10k theme
 ARG ZSH_IN_DOCKER_VERSION=1.2.0

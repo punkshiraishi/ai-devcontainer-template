@@ -12,7 +12,9 @@
   },
   "runArgs": [
     "--cap-add=NET_ADMIN",
-    "--cap-add=NET_RAW"
+    "--cap-add=NET_RAW",
+    "-p",
+    "1455:8085"
   ],
   "customizations": {
     "vscode": {
@@ -56,5 +58,13 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace",
   "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
-  "waitFor": "postStartCommand"
+  "waitFor": "postStartCommand",
+  "forwardPorts": [
+    8085
+  ],
+  "portsAttributes": {
+    "8085": {
+      "label": "Codex OAuth Callback (host 1455)"
+    }
+  }
 }
